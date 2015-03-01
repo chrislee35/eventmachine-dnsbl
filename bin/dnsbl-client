@@ -1,0 +1,42 @@
+#!/usr/bin/env ruby
+require 'eventmachine/dnsbl/client'
+require 'pp'
+
+puts EventMachine::DNSBL::DNSBLResult.members.join("\t")
+if ARGV.length > 0
+  ARGV.each do |item|
+    EM.run do
+      EventMachine::DNSBL::Client.check(item) do |results|
+    		results.each do |res|
+      		sep = ""
+          res.members.each do |member|
+            print sep
+            print res[member]
+            sep = "\t"
+          end
+      		puts
+    		end
+        EM.stop
+      end
+    end
+  end
+else
+  $stdin.each_line do |item|
+    item.chomp!
+    EM.run do
+      EventMachine::DNSBL::Client.check(item) do |results|
+        results.each do |res|
+    			sep = ""
+    			res.members.each do |member|
+    				print sep
+    				print res[member]
+    				sep = "\t"
+    			end
+    			puts
+        end
+        EM.stop
+      end
+    end
+  end
+end
+
