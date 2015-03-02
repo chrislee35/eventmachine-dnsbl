@@ -42,6 +42,11 @@ module EventMachine
           rs.each do |row|
             row[1] = Regexp.new(row[1])
             row[3] = Resolv::DNS::Resource::IN::A.new(row[3])
+            if row[4] =~ /\d/
+              row[4] = row[4].to_i
+            else
+              row[4] = nil
+            end
             records << DNSBLResourceRecord.new(*row)
           end
           records

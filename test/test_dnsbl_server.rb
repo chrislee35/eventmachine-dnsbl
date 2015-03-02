@@ -42,14 +42,42 @@ class TestDNSBLServer < Minitest::Test
         Time.now.to_i + 3600
       )
     )
+    zone.add_dnsblresource(
+      EventMachine::DNSBL::Zone::DNSBLResourceRecord.new(
+        "example.com", 
+        /\d+\.0\.0\.127$/, 
+        300, 
+        Resolv::DNS::Resource::IN::A.new("127.0.0.4"),
+        Time.now.to_i + 3600
+      )
+    )
+    zone.add_dnsblresource(
+      EventMachine::DNSBL::Zone::DNSBLResourceRecord.new(
+        "example.com", 
+        /\d+\.0\.168\.192$/, 
+        300, 
+        Resolv::DNS::Resource::IN::A.new("127.0.0.5"),
+        Time.now.to_i - 10
+      )
+    )
   end
   
   def zone_test(zone)
     zone_add_test_resources(zone)
-    recs = zone.get_records("viagrapillz.example.com", Resolv::DNS::Resource::IN::A)
-    assert(2, recs.length)
-    recs = zone.get_records("cialispillz.example.com", Resolv::DNS::Resource::IN::A)
-    assert(1, recs.length)
+    recs = zone.get_records("viagrapillz.example.com")
+    assert_equal(2, recs.length)
+    assert_equal("127.0.0.2", recs[0].answer.address.to_s)
+    assert_equal("127.0.0.3", recs[1].answer.address.to_s)
+    recs = zone.get_records("cialispillz.example.com")
+    assert_equal(1, recs.length)
+    assert_equal("127.0.0.3", recs[0].answer.address.to_s)
+    recs = zone.get_records("www.example.com")
+    assert_equal(0, recs.length)
+    recs = zone.get_records("1.0.0.127.example.com")
+    assert_equal(1, recs.length)
+    assert_equal("127.0.0.4", recs[0].answer.address.to_s)
+    recs = zone.get_records("5.0.168.192.example.com")
+    assert_equal(0, recs.length)
   end
     
   def test_memory_zone

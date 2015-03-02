@@ -16,7 +16,6 @@ class TestDNSBLClient < Minitest::Test
   def run_test(item, expected_result)
     EM.run do
       EventMachine::DNSBL::Client.check(item) do |results|
-        pp results
         assert_equal(expected_result, EventMachine::DNSBL::Client.blacklisted?(results))
         EM.stop
       end
